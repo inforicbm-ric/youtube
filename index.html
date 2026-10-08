@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DualPlay Studio — Controle Dual Screen para YouTube</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f1117;
+      --bg-card: #181b25;
+      --bg-hover: #222634;
+      --primary: #ef4444;
+      --primary-hover: #dc2626;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border: #2d3345;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background-color: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary), #b91c1c);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #fff;
+    }
+    .logo-text h1 { font-size: 1.15rem; font-weight: 700; color: #fff; }
+    .logo-text p { font-size: 0.75rem; color: var(--text-muted); }
+    .header-actions { display: flex; gap: 0.75rem; }
+    .btn {
+      background-color: var(--bg-hover);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 0.875rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+    .btn:hover { background-color: var(--border); }
+    .btn-primary { background-color: var(--primary); border-color: var(--primary); color: #fff; }
+    .btn-primary:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); }
+    .btn-accent { background-color: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-accent:hover { background-color: var(--accent-hover); border-color: var(--accent-hover); }
+    main {
+      flex: 1;
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.5rem;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    @media (max-width: 992px) { main { grid-template-columns: 1fr; } }
+    .input-bar {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      border-radius: 10px;
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .input-bar input {
+      flex: 1;
+      background-color: var(--bg-dark);
+      border: 1px solid var(--border);
+      padding: 0.65rem 1rem;
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .input-bar input:focus { border-color: var(--accent); }
+    .player-section { display: flex; flex-direction: column; gap: 1.25rem; }
+    .video-container {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      background-color: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .video-container iframe, .video-container #player {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      border: none;
+    }
+    .controls-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 1.25rem;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .progress-wrapper { display: flex; align-items: center; gap: 1rem; }
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background-color: var(--bg-dark);
+      border-radius: 3px;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background-color: var(--primary);
+      border-radius: 3px;
+    }
+    .time-display { font-size: 0.8rem; color: var(--text-muted); font-family: monospace; min-width: 90px; }
+    .controls-buttons {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .main-btns, .vol-btns { display: flex; align-items: center; gap: 0.5rem; }
+    .vol-slider { width: 100px; accent-color: var(--accent); }
+    .playlist-section {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-height: calc(100vh - 120px);
+    }
+    .playlist-title { font-size: 1rem; font-weight: 600; color: #fff; }
+    .playlist-items {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .playlist-item {
+      background-color: var(--bg-dark);
+      border: 1px solid var(--border);
+      padding: 0.75rem;
+      border-radius: 6px;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .playlist-item:hover { border-color: var(--accent); }
+    .playlist-item.active { border-color: var(--primary); background-color: rgba(239, 68, 68, 0.1); }
+    .playlist-item img { width: 64px; height: 36px; object-fit: cover; border-radius: 4px; }
+    .item-info { flex: 1; overflow: hidden; }
+    .item-title { font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-id { font-size: 0.75rem; color: var(--text-muted); }
+    body.is-tv-mode { background-color: #000; padding: 0; margin: 0; }
+    body.is-tv-mode header, body.is-tv-mode .input-bar, body.is-tv-mode .controls-card, body.is-tv-mode .playlist-section { display: none !important; }
+    body.is-tv-mode main { display: block; padding: 0; max-width: 100%; height: 100vh; }
+    body.is-tv-mode .video-container { height: 100vh; padding-top: 0; border: none; border-radius: 0; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">▶</div>
+      <div class="logo-text">
+        <h1>DualPlay Studio</h1>
+        <p>Controle do Notebook para TV de 55" (Sem Anúncios)</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-accent" onclick="openTvWindow()">📺 Lançar Player na TV</button>
+      <button class="btn" onclick="toggleFullscreenTV()">⛶ Tela Cheia na TV</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="player-section">
+      <div class="input-bar">
+        <input type="text" id="youtubeUrl" placeholder="Cole o link do vídeo do YouTube (ex: https://www.youtube.com/watch?v=...)" />
+        <button class="btn btn-primary" onclick="playCurrentInput()">▶ Tocar Agora</button>
+        <button class="btn" onclick="addToPlaylist()">+ Fila</button>
+      </div>
+
+      <div class="video-container">
+        <div id="player"></div>
+      </div>
+
+      <div class="controls-card">
+        <div class="progress-wrapper">
+          <span class="time-display" id="currentTime">00:00 / 00:00</span>
+          <div class="progress-bar" id="progressBar" onclick="seekVideo(event)">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+
+        <div class="controls-buttons">
+          <div class="main-btns">
+            <button class="btn" onclick="playVideo()">▶ Play</button>
+            <button class="btn" onclick="pauseVideo()">⏸ Pausa</button>
+            <button class="btn" onclick="seekRelative(-10)">↺ -10s</button>
+            <button class="btn" onclick="seekRelative(10)">↻ +10s</button>
+            <button class="btn" onclick="playNextInPlaylist()">⏭ Próximo</button>
+          </div>
+
+          <div class="vol-btns">
+            <button class="btn" onclick="toggleMute()" id="muteBtn">🔊</button>
+            <input type="range" class="vol-slider" min="0" max="100" value="100" id="volRange" oninput="changeVolume(this.value)">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="playlist-section">
+      <div class="playlist-title">Fila de Reprodução</div>
+      <div class="playlist-items" id="playlistContainer"></div>
+    </aside>
+  </main>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    const isTV = window.location.search.includes('mode=tv');
+    if (isTV) { document.body.classList.add('is-tv-mode'); }
+
+    const bc = new BroadcastChannel('dualplay_channel');
+    let player;
+    let playlist = [];
+    let currentIndex = -1;
+    let tvWindow = null;
+
+    function extractVideoID(url) {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : url;
+    }
+
+    function onYouTubeIframeAPIReady() {
+      const initialId = isTV ? 'dQw4w9WgXcQ' : 'dQw4w9WgXcQ';
+      player = new YT.Player('player', {
+        height: '100%',
+        width: '100%',
+        videoId: initialId,
+        playerVars: {
+          'autoplay': 1,
+          'controls': isTV ? 0 : 1,
+          'rel': 0,
+          'modestbranding': 1,
+          'origin': window.location.origin
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    function onPlayerReady(event) {
+      if (isTV) { event.target.playVideo(); }
+      setInterval(updateProgress, 500);
+    }
+
+    function onPlayerStateChange(event) {
+      if (!isTV) {
+        bc.postMessage({ type: 'STATE_CHANGE', state: event.data });
+      }
+      if (event.data === YT.PlayerState.ENDED) {
+        playNextInPlaylist();
+      }
+    }
+
+    function updateProgress() {
+      if (player && player.getCurrentTime) {
+        const cur = player.getCurrentTime() || 0;
+        const dur = player.getDuration() || 0;
+        if (dur > 0) {
+          const pct = (cur / dur) * 100;
+          document.getElementById('progressFill').style.width = pct + '%';
+          document.getElementById('currentTime').innerText = formatTime(cur) + ' / ' + formatTime(dur);
+          if (!isTV) {
+            bc.postMessage({ type: 'TIME_UPDATE', currentTime: cur, duration: dur });
+          }
+        }
+      }
+    }
+
+    function formatTime(s) {
+      const mins = Math.floor(s / 60);
+      const secs = Math.floor(s % 60);
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function playVideoId(id) {
+      if (player && player.loadVideoById) {
+        player.loadVideoById(id);
+        bc.postMessage({ type: 'LOAD_VIDEO', videoId: id });
+      }
+    }
+
+    function playCurrentInput() {
+      const input = document.getElementById('youtubeUrl').value.trim();
+      if (!input) return;
+      const vid = extractVideoID(input);
+      playVideoId(vid);
+      addToPlaylist(vid);
+    }
+
+    function addToPlaylist(idOverride) {
+      const input = document.getElementById('youtubeUrl').value.trim();
+      const vid = idOverride || extractVideoID(input);
+      if (!vid) return;
+      playlist.push(vid);
+      renderPlaylist();
+      document.getElementById('youtubeUrl').value = '';
+    }
+
+    function renderPlaylist() {
+      const container = document.getElementById('playlistContainer');
+      container.innerHTML = '';
+      playlist.forEach((id, idx) => {
+        const div = document.createElement('div');
+        div.className = `playlist-item ${idx === currentIndex ? 'active' : ''}`;
+        div.onclick = () => { currentIndex = idx; playVideoId(id); renderPlaylist(); };
+        div.innerHTML = `
+          <img src="https://img.youtube.com/vi/${id}/hqdefault.jpg" />
+          <div class="item-info">
+            <div class="item-title">Vídeo ${idx + 1}</div>
+            <div class="item-id">ID: ${id}</div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function playNextInPlaylist() {
+      if (currentIndex + 1 < playlist.length) {
+        currentIndex++;
+        playVideoId(playlist[currentIndex]);
+        renderPlaylist();
+      }
+    }
+
+    function playVideo() { player.playVideo(); bc.postMessage({ type: 'PLAY' }); }
+    function pauseVideo() { player.pauseVideo(); bc.postMessage({ type: 'PAUSE' }); }
+    function seekRelative(sec) {
+      const cur = player.getCurrentTime() || 0;
+      player.seekTo(cur + sec, true);
+      bc.postMessage({ type: 'SEEK', time: cur + sec });
+    }
+    function seekVideo(e) {
+      const bar = document.getElementById('progressBar');
+      const rect = bar.getBoundingClientRect();
+      const pct = (e.clientX - rect.left) / rect.width;
+      const dur = player.getDuration() || 0;
+      player.seekTo(dur * pct, true);
+      bc.postMessage({ type: 'SEEK', time: dur * pct });
+    }
+    function changeVolume(v) { player.setVolume(v); bc.postMessage({ type: 'VOLUME', volume: v }); }
+    function toggleMute() {
+      if (player.isMuted()) { player.unMute(); document.getElementById('muteBtn').innerText = '🔊'; }
+      else { player.mute(); document.getElementById('muteBtn').innerText = '🔇'; }
+      bc.postMessage({ type: 'MUTE', isMuted: player.isMuted() });
+    }
+
+    function openTvWindow() {
+      const tvUrl = window.location.pathname + '?mode=tv';
+      tvWindow = window.open(tvUrl, 'DualPlayTV', 'width=1280,height=720');
+    }
+
+    function toggleFullscreenTV() {
+      bc.postMessage({ type: 'TOGGLE_FULLSCREEN' });
+    }
+
+    bc.onmessage = (event) => {
+      const data = event.data;
+      if (isTV) {
+        if (data.type === 'LOAD_VIDEO') player.loadVideoById(data.videoId);
+        if (data.type === 'PLAY') player.playVideo();
+        if (data.type === 'PAUSE') player.pauseVideo();
+        if (data.type === 'SEEK') player.seekTo(data.time, true);
+        if (data.type === 'VOLUME') player.setVolume(data.volume);
+        if (data.type === 'MUTE') { data.isMuted ? player.mute() : player.unMute(); }
+        if (data.type === 'TOGGLE_FULLSCREEN') {
+          if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+          else { document.exitFullscreen(); }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.code === 'Space') { e.preventDefault(); player.getPlayerState() === 1 ? pauseVideo() : playVideo(); }
+      if (e.code === 'ArrowLeft') seekRelative(-10);
+      if (e.code === 'ArrowRight') seekRelative(10);
+      if (e.code === 'KeyM') toggleMute();
+      if (e.code === 'KeyF') toggleFullscreenTV();
+    });
+  </script>
+</body>
+</html>
